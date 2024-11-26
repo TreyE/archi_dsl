@@ -20,18 +20,43 @@ module ArchiDsl
         @elements << element
       end
 
+      def group(element_or_id, &blk)
+        element = element_or_id.respond_to?(:element_id) ? element_or_id : @element_lookup.lookup(element_or_id)
+        dg_ele = DiagramGroup.new(@element_lookup, @exclusion_registry, element)
+        @groups << dg_ele
+        dg_ele.instance_exec(&blk) if blk
+      end
+
+      def write_node_children(p_node, children)
+        children.each do |ele|
+          next unless @filtered_element_ids.include?(ele.element)
+          p_node[:archimate].node(
+            "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
+            "xsi:type" => "Element",
+            "elementRef" => ele.element,
+            "identifier" => "d-#{@d_index}-" + ele.element,
+            "x" => ele.x.round,
+            "y" => ele.y.round,
+            "w" => ele.w.round,
+            "h" => ele.h.round
+          ) do |new_p_node|
+            write_node_children(new_p_node, ele.children)
+          end
+        end
+      end
+
       def to_xml(parent)
         associations = select_associations_for_diagram
-        vl = ArchiDsl::Layout::ViewLayout.new(@groups, @elements, associations)
-        pos = vl.positions
-        view_elements = pos.select { |gp| gp.is_a?(ArchiDsl::Layout::GVNode) }
-        view_assocs = pos.select { |gp| gp.is_a?(ArchiDsl::Layout::GVEdge) }
+        @filtered_element_ids = all_element_ids
+        vl = ArchiDsl::Layout::ViewLayout.new(@groups, @elements, associations, all_element_ids)
+        view_elements, view_assocs = vl.positions
         parent[:archimate].view(
           "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
           "xsi:type" => "Diagram",
           "identifier" => @element_id) do |d_node|
           d_node[:archimate].name(@name)
           view_elements.each do |ele|
+            next unless @filtered_element_ids.include?(ele.element)
             d_node[:archimate].node(
               "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
               "xsi:type" => "Element",
@@ -39,9 +64,11 @@ module ArchiDsl
               "identifier" => "d-#{@d_index}-" + ele.element,
               "x" => ele.x.round,
               "y" => ele.y.round,
-              "w" => ele.width.round,
-              "h" => ele.height.round
-            )
+              "w" => ele.w.round,
+              "h" => ele.h.round
+            ) do |p_node|
+              write_node_children(p_node, ele.children)
+            end
           end
           view_assocs.each do |va|
             d_node[:archimate].connection(
@@ -60,11 +87,14 @@ module ArchiDsl
 
       protected
 
-      def select_associations_for_diagram
+      def all_element_ids
         element_ids = @elements.map(&:element_id)
         group_element_ids = @groups.flat_map(&:element_ids).uniq
-        all_element_ids = (element_ids + group_element_ids).uniq
-        @association_registry.filter_to(all_element_ids, @exclusion_registry)
+        (element_ids + group_element_ids).uniq
+      end
+
+      def select_associations_for_diagram
+        all_assocs = @association_registry.filter_to(all_element_ids, @exclusion_registry)
       end
     end
   end

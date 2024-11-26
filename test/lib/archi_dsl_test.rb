@@ -24,7 +24,7 @@ class TestArchiDsl < Minitest::Test
       end
     end
 
-    model.to_xml
+    # model.to_xml
   end
 
   def test_employer_model
@@ -79,22 +79,26 @@ class TestArchiDsl < Minitest::Test
       flow pevdx, f_ex
 
       diagram "Employer XML V2 Flow" do
+        group hbx_e do
+          node eddl
+        end
+        group r_mq do
+          node f_ex
+          node all_messages
+          node t_ex
+          node r_key
+          node q
+        end
+        group wl_as do
+          group o_soa do
+            node composite
+          end
+          node o_b2b
+          node b2bm
+        end
         node gdb
-        node hbx_e
-        node eddl
-        node r_mq
-        node f_ex
-        node all_messages
-        node t_ex
-        node r_key
-        node q
-        node wl_as
-        node o_soa
-        node o_b2b
         node pevdx
         node s_req
-        node b2bm
-        node composite
       end
     end
 

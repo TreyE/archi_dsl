@@ -21,15 +21,28 @@ module ArchiDsl
 
       def node(element_or_id)
         element = element_or_id.respond_to?(:element_id) ? element_or_id : @element_lookup.lookup(element_or_id)
-        @exclusion_registry << [self, element, :aggregation]
+        @exclusion_registry << [self, element, @group_element.class.child_association_kind]
         @elements << element
       end
 
       def group(element_or_id, &blk)
         element = element_or_id.respond_to?(:element_id) ? element_or_id : @element_lookup.lookup(element_or_id)
-        dg_ele = DiagramGroup.new(element_lookup, @exclusion_registry, element)
+        dg_ele = DiagramGroup.new(@element_lookup, @exclusion_registry, element)
         @groups << dg_ele
-        dg_ele.instance_exec(&blk)
+        dg_ele.instance_exec(&blk) if blk
+      end
+
+      def add_children_to_graph(subgraph, node_map)
+        @groups.each do |grp|
+          sg = subgraph.add_graph("cluster_" + grp.element_id)
+          node_map["cluster_" + grp.element_id] = sg
+          # sg.add_node(grp.name, label: grp.name)
+          grp.add_children_to_graph(sg, node_map)
+        end
+
+        @elements.each do |el|
+          node_map[el.element_id] = subgraph.add_nodes(el.element_id, id: el.element_id, label: el.name)
+        end
       end
     end
   end
