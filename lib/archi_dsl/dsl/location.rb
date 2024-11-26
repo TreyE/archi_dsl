@@ -1,8 +1,8 @@
 module ArchiDsl
   module Dsl
-    class Group < ParentElement
+    class Location < ParentElement
       def xsi_type
-        "Grouping"
+        "Location"
       end
 
       def self.child_association_kind

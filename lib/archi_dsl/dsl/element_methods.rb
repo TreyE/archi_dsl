@@ -37,16 +37,13 @@ module ArchiDsl
         [:data_object, "DataObject"],
         [:node, "Node"],
         [:device, "Device"],
-        [:system_software, "SystemSoftware"],
         [:technology_collaboration, "TechnologyCollaboration"],
         [:technology_interface, "TechnologyInterface"],
         [:path, "Path"],
         [:communication_network, "CommunicationNetwork"],
         [:technology_function, "TechnologyFunction"],
-        [:technology_process, "TechnologyProcess"],
         [:technology_interaction, "TechnologyInteraction"],
         [:technology_event, "TechnologyEvent"],
-        [:technology_service, "TechnologyService"],
         [:artifact, "Artifact"],
         [:equipment, "Equipment"],
         [:facility, "Facility"],
@@ -71,20 +68,35 @@ module ArchiDsl
         [:implementation_event, "ImplementationEvent"],
         [:plateau, "Plateau"],
         [:gap, "Gap"],
-        [:location, "Location"],
         [:and_junction, "AndJunction"],
         [:or_junction, "OrJunction"]
       ].freeze
 
-      REAL_ELEMENT_SET.each do |re_item|
-        define_real_element_method(re_item[0], re_item[1])
+      PARENTING_ELEMENT_SETS = [
+        [:group, "Group"],
+        [:location, "Location"],
+        [:system_software, "SystemSoftware"],
+        [:technology_process, "TechnologyProcess"],
+        [:technology_service, "TechnologyService"]
+      ].freeze
+
+      def self.define_parent_element_method(name, ele_kind)
+        class_eval(<<-RUBY_CODE)
+          def #{name}(element_name, element_id = "e-" + SecureRandom.uuid, &blk)
+            ele = #{ele_kind}.new(@association_registry, @element_lookup, element_name, element_id, &blk)
+            @element_lookup.add_element(ele)
+            @children << ele
+            ele
+          end
+        RUBY_CODE
       end
 
-      def group(element_name, element_id = "g-" + SecureRandom.uuid, &blk)
-        ele = Group.new(@association_registry, @element_lookup, element_name, element_id, &blk)
-        @element_lookup.add_element(ele)
-        @children << ele
-        ele
+      PARENTING_ELEMENT_SETS.each do |pe_item|
+        define_parent_element_method(pe_item[0], pe_item[1])
+      end
+
+      REAL_ELEMENT_SET.each do |re_item|
+        define_real_element_method(re_item[0], re_item[1])
       end
     end
   end

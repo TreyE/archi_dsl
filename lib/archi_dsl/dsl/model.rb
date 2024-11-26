@@ -59,7 +59,7 @@ module ArchiDsl
               end
             end
           end
-        end
+        end.to_xml
       end
     end
   end

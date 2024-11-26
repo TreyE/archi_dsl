@@ -1,12 +1,12 @@
 module ArchiDsl
   module Dsl
-    class Group < ParentElement
+    class SystemSoftware < ParentElement
       def xsi_type
-        "Grouping"
+        "SystemSoftware"
       end
 
       def self.child_association_kind
-        :aggregation
+        :assignment
       end
 
       ArchiDsl::Dsl::ElementMethods::REAL_ELEMENT_SET.each do |re_item|

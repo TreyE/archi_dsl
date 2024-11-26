@@ -11,6 +11,7 @@ module ArchiDsl
         @name = name
         @elements = []
         @groups = []
+        @d_index = d_index
         instance_exec(&blk) if blk
       end
 
