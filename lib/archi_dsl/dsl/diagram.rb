@@ -49,7 +49,7 @@ module ArchiDsl
         associations = select_associations_for_diagram
         @filtered_element_ids = all_element_ids
         vl = ArchiDsl::Layout::ViewLayout.new(@groups, @elements, associations, all_element_ids)
-        view_elements, view_assocs = vl.positions
+        view_elements = vl.positions
         parent[:archimate].view(
           "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
           "xsi:type" => "Diagram",
@@ -70,15 +70,15 @@ module ArchiDsl
               write_node_children(p_node, ele.children)
             end
           end
-          view_assocs.each do |va|
+          associations.each do |va|
             d_node[:archimate].connection(
               {
                 "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
                 "xsi:type" => "Relationship",
-                "relationshipRef" => va.relationship,
-                "source" => "d-#{@d_index}-" + va.source,
-                "target" => "d-#{@d_index}-" + va.target,
-                "identifier" => "d-#{@d_index}-" + va.relationship
+                "relationshipRef" => va.id,
+                "source" => "d-#{@d_index}-" + va.from.element_id,
+                "target" => "d-#{@d_index}-" + va.to.element_id,
+                "identifier" => "d-#{@d_index}-" + va.id
               }
             )
           end

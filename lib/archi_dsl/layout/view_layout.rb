@@ -62,8 +62,7 @@ module ArchiDsl
           h = ury - lly
           x = llx
           w = urx - llx
-          children, child_edge_items = parse_gv_model(gs)
-          edge_items = edge_items + child_edge_items
+          children = parse_gv_model(gs)
           #raise name.inspect
           graph_nodes << GVNode.new(name.gsub(/\Acluster_/, "").gsub("_", "-"), x, y, w, h, children)
         end
@@ -78,10 +77,7 @@ module ArchiDsl
           normal_nodes << GVNode.new(n.id, x - (w * SCALE_FACTOR/2), @height - y - (h * SCALE_FACTOR/2), w * SCALE_FACTOR, h * SCALE_FACTOR, [])
         end
 
-        model.each_edge do |edge|
-        end
-
-        [graph_nodes + normal_nodes, edge_items]
+        graph_nodes + normal_nodes
       end
 
       def scalef(v)
@@ -98,6 +94,8 @@ module ArchiDsl
         # g.node["fixedsize"] = "true"
         # g.node["width"] = 1.0
         # g.node["height"] = 0.5
+        g["fontname"] = "Lucida Grande"
+        g["fontsize"] = "12pt"
         g.node["shape"] = "box"
         g.edge["dir"] = "none"
         g.edge["headclip"] = "false"
@@ -105,11 +103,14 @@ module ArchiDsl
         # g["splines"] = "ortho"
         g["rankdir"] = "TB"
         # g["dpi"] = SCALE_FACTOR
+        g.node["margin"] = "0.36,0.055"
 
         @node_map = {}
 
         @groups.each do |grp|
           sg = g.add_graph("cluster_" + grp.element_id)
+          sg["label"] = grp.name
+          sg["rankdir"] = "TB"
           @node_map["cluster_" + grp.element_id] = sg
           grp.add_children_to_graph(sg, @node_map)
         end
