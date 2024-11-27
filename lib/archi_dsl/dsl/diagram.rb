@@ -12,6 +12,7 @@ module ArchiDsl
         @elements = []
         @groups = []
         @d_index = d_index
+        @layout_links = []
         instance_exec(&blk) if blk
       end
 
@@ -45,10 +46,16 @@ module ArchiDsl
         end
       end
 
+      def layout_link(from, to)
+        from_element = from.respond_to?(:element_id) ? from : @element_lookup.lookup(from)
+        to_element = to.respond_to?(:element_id) ? to : @element_lookup.lookup(to)
+        @layout_links << [from_element, to_element]
+      end
+
       def to_xml(parent)
         associations = select_associations_for_diagram
         @filtered_element_ids = all_element_ids
-        vl = ArchiDsl::Layout::ViewLayout.new(@groups, @elements, associations, all_element_ids)
+        vl = ArchiDsl::Layout::ViewLayout.new(@groups, @elements, associations, all_element_ids, @layout_links)
         view_elements = vl.positions
         parent[:archimate].view(
           "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",

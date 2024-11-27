@@ -18,12 +18,13 @@ module ArchiDsl
       attr_reader :relationships
       attr_reader :groups
 
-      def initialize(groups, elements, relationships, element_ids)
+      def initialize(groups, elements, relationships, element_ids, element_links)
         @g = nil
         @groups = groups
         @relationships = relationships
         @elements = elements
         @element_ids = element_ids
+        @element_links = element_links
       end
 
       def positions
@@ -99,7 +100,7 @@ module ArchiDsl
         g.edge["headclip"] = "false"
         g.edge["tailclip"] = "false"
         # g["splines"] = "ortho"
-        g["rankdir"] = "TB"
+        g["rankdir"] = "BT"
         # g["dpi"] = SCALE_FACTOR
         g.node["margin"] = "0.36,0.055"
 
@@ -108,8 +109,8 @@ module ArchiDsl
         @groups.each do |grp|
           sg = g.add_graph("cluster_" + grp.element_id)
           sg["label"] = grp.name
-          sg["rankdir"] = "TB"
-          @node_map["cluster_" + grp.element_id] = sg
+          sg["labelloc"] = "b"
+          @node_map[grp.element_id] = sg
           grp.add_children_to_graph(sg, @node_map)
         end
 
@@ -122,8 +123,13 @@ module ArchiDsl
           begin
             g.add_edges(@node_map[rel.to.element_id], @node_map[rel.from.element_id], label: rel.id)
           rescue
-            #raise [rel.to.element_id, rel.from.element_id].inspect
+            raise [rel.to.element_id, rel.from.element_id].inspect
           end
+        end
+
+        @element_links.each do |e_link|
+          from, to = e_link
+          g.add_edges(@node_map[to.element_id], @node_map[from.element_id])
         end
       end
 

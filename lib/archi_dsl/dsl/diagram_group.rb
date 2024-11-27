@@ -36,8 +36,8 @@ module ArchiDsl
         @groups.each do |grp|
           sg = subgraph.add_graph("cluster_" + grp.element_id)
           sg["label"] = grp.name
-          sg["rankdir"] = "TB"
-          node_map["cluster_" + grp.element_id] = sg
+          sg["labelloc"] = "b"
+          node_map[grp.element_id] = sg
           # sg.add_node(grp.name, label: grp.name)
           grp.add_children_to_graph(sg, node_map)
         end

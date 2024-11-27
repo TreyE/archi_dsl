@@ -5,5 +5,7 @@ source "https://rubygems.org"
 gemspec
 
 gem "rake"
-gem "minitest"
-# gem "rails"
+
+group :test do
+  gem "minitest"
+end
