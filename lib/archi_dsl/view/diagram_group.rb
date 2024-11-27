@@ -1,5 +1,5 @@
 module ArchiDsl
-  module Dsl
+  module View
     class DiagramGroup
       attr_reader :element_id, :name, :elements
 

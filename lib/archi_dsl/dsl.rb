@@ -11,8 +11,6 @@ require_relative "dsl/technology_service"
 require_relative "dsl/technology_process"
 require_relative "dsl/location"
 require_relative "dsl/real_element"
-require_relative "dsl/diagram_group"
-require_relative "dsl/diagram"
 require_relative "dsl/model"
 
 module ArchiDsl

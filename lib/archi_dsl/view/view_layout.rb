@@ -1,7 +1,7 @@
 require "graphviz"
 
 module ArchiDsl
-  module Layout
+  module View
     GVNode = Struct.new(:element, :x, :y, :w, :h, :children)
     GVEdge = Struct.new(:relationship, :source, :target, :bendpoints)
 

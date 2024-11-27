@@ -1,7 +1,7 @@
 require "nokogiri"
 
 require "securerandom"
-require_relative "archi_dsl/layout"
+require_relative "archi_dsl/view"
 require_relative "archi_dsl/dsl"
 
 module ArchiDsl

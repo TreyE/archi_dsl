@@ -1,5 +1,5 @@
 module ArchiDsl
-  module Dsl
+  module View
     class Diagram
       attr_reader :name, :element_id
 
@@ -55,7 +55,7 @@ module ArchiDsl
       def to_xml(parent)
         associations = select_associations_for_diagram
         @filtered_element_ids = all_element_ids
-        vl = ArchiDsl::Layout::ViewLayout.new(@groups, @elements, associations, all_element_ids, @layout_links)
+        vl = ArchiDsl::View::ViewLayout.new(@groups, @elements, associations, all_element_ids, @layout_links)
         view_elements = vl.positions
         parent[:archimate].view(
           "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
