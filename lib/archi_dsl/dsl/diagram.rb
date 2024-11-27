@@ -94,7 +94,7 @@ module ArchiDsl
       end
 
       def select_associations_for_diagram
-        all_assocs = @association_registry.filter_to(all_element_ids, @exclusion_registry)
+        @association_registry.filter_to(all_element_ids, @exclusion_registry)
       end
     end
   end

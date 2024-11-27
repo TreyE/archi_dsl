@@ -16,7 +16,7 @@ module ArchiDsl
       def element_ids
         element_ids = @elements.map(&:element_id)
         group_element_ids = @groups.flat_map(&:element_ids).uniq
-        all_element_ids = ([@element_id] + element_ids + group_element_ids).uniq
+        ([@element_id] + element_ids + group_element_ids).uniq
       end
 
       def node(element_or_id)

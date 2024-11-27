@@ -24,7 +24,7 @@ class TestArchiDsl < Minitest::Test
       end
     end
 
-    # model.to_xml
+    model.to_xml
   end
 
   def test_employer_model
@@ -102,6 +102,6 @@ class TestArchiDsl < Minitest::Test
       end
     end
 
-    puts model.to_xml
+    model.to_xml
   end
 end

@@ -50,7 +50,6 @@ module ArchiDsl
           bb = model.graph["bb"]
           _llx, _lly, @width, @height = bb.to_ruby
         end
-        edge_items = []
         graph_nodes = []
         normal_nodes = []
 
@@ -58,7 +57,6 @@ module ArchiDsl
           bb = gs.graph["bb"]
           llx, lly, urx, ury = bb.to_ruby
           y = @height - ury
-          puts [@height, ury, y].inspect
           h = ury - lly
           x = llx
           w = urx - llx
