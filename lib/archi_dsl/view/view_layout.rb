@@ -44,6 +44,11 @@ module ArchiDsl
         end
       end
 
+      def preview(file_path)
+        build_graphviz_model
+        g.output(png: file_path)
+      end
+
       private
 
       def parse_gv_model(model)

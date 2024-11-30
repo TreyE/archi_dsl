@@ -117,6 +117,8 @@ model = ArchiDsl.model "Employer V2 XML Process" do
   end
 end
 
+model.preview_diagram("Employer XML V2 Flow", "example.png")
+
 File.open("employer_xml_flow.xml", "wb") do |f|
   f.puts model.to_xml
 end

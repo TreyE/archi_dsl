@@ -22,6 +22,11 @@ module ArchiDsl
         dia
       end
 
+      def preview_diagram(diagram_name, file_path)
+        diagram = @diagrams.detect { |d| d.name == diagram_name }
+        diagram.preview(file_path)
+      end
+
       def to_xml
         Nokogiri::XML::Builder.new do |xml|
           xml["archimate"].model(

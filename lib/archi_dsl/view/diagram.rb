@@ -52,6 +52,13 @@ module ArchiDsl
         @layout_links << [from_element, to_element]
       end
 
+      def preview(file_path)
+        associations = select_associations_for_diagram
+        @filtered_element_ids = all_element_ids
+        vl = ArchiDsl::View::ViewLayout.new(@groups, @elements, associations, all_element_ids, @layout_links)
+        vl.preview(file_path)
+      end
+
       def to_xml(parent)
         associations = select_associations_for_diagram
         @filtered_element_ids = all_element_ids

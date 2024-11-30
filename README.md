@@ -4,5 +4,5 @@ A Ruby DSL for generating Archimate Diagrams.  Intended to target Archi.
 
 ## Future Features
 
-* Diagram Preview
+* ~~Diagram Preview~~
 * Archi-style folders for items
