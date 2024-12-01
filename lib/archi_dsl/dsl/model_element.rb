@@ -2,19 +2,20 @@ require "securerandom"
 
 module ArchiDsl
   module Dsl
-    class RealElement < ElementBase
-      def initialize(a_registry, tag, name, **kwargs, &blk)
+    class ModelElement
+      attr_reader :element_id, :name
+
+      def initialize(a_registry, e_lookup, name, **kwargs)
         @element_id = kwargs.fetch(:id, "e-" + SecureRandom.uuid)
+        @element_lookup = e_lookup
         @association_registry = a_registry
-        @tag = tag
         @name = name
-        @children = []
-        instance_exec(&blk) if blk
+        @element_lookup.add_element(self)
       end
 
       def to_xml(parent)
         element_attributes = {
-          "xsi:type" => @tag,
+          "xsi:type" => self.xsi_type,
           "identifier" => @element_id
         }
         parent["archimate"].element(element_attributes) do |r_element|
@@ -22,8 +23,16 @@ module ArchiDsl
         end
       end
 
+      def children
+        []
+      end
+
+      def elements
+        [self]
+      end
+
       def view_only?
-        true
+        false
       end
     end
   end

@@ -3,8 +3,8 @@ module ArchiDsl
     module ElementMethods
       def self.define_real_element_method(name, ele_kind)
         class_eval(<<-RUBY_CODE)
-          def #{name}(element_name, element_id = "e-" + SecureRandom.uuid, &blk)
-            ele = RealElement.new(@association_registry, "#{ele_kind}", element_name, element_id, &blk)
+          def #{name}(element_name, **kwargs, &blk)
+            ele = RealElement.new(@association_registry, "#{ele_kind}", element_name, **kwargs, &blk)
             @element_lookup.add_element(ele)
             @children << ele
             ele
@@ -12,29 +12,35 @@ module ArchiDsl
         RUBY_CODE
       end
 
+      MODEL_ELEMENT_SET = [
+        [:business_actor, "Business::BusinessActor"],
+        [:business_role, "Business::BusinessRole"],
+        [:business_collaboration, "Business::BusinessCollaboration"],
+        [:business_interface, "Business::BusinessInterface"],
+        [:business_process, "Business::BusinessProcess"],
+        [:business_function, "Business::BusinessFunction"],
+        [:business_interaction, "Business::BusinessInteraction"],
+        [:business_event, "Business::BusinessEvent"],
+        [:business_service, "Business::BusinessService"],
+        [:business_object, "Business::BusinessObject"],
+        [:contract, "Business::Contract"],
+        [:representation, "Business::Representation"],
+        [:product, "Business::Product"],
+        [:application_component, "Application::ApplicationComponent"],
+        [:application_collaboration, "Application::ApplicationCollaboration"],
+        [:application_interface, "Application::ApplicationInterface"],
+        [:application_function, "Application::ApplicationFunction"],
+        [:application_interaction, "Application::ApplicationInteraction"],
+        [:application_process, "Application::ApplicationProcess"],
+        [:application_event, "Application::ApplicationEvent"],
+        [:application_service, "Application::ApplicationService"],
+        [:data_object, "Application::DataObject"],
+        [:equipment, "Physical::Equipment"],
+        [:facility, "Physical::Facility"],
+        [:material, "Physical::Material"]
+      ].freeze
+
       REAL_ELEMENT_SET = [
-        [:business_actor, "BusinessActor"],
-        [:business_role, "BusinessRole"],
-        [:business_collaboration, "BusinessCollaboration"],
-        [:business_interface, "BusinessInterface"],
-        [:business_process, "BusinessProcess"],
-        [:business_function, "BusinessFunction"],
-        [:business_interaction, "BusinessInteraction"],
-        [:business_event, "BusinessEvent"],
-        [:business_service, "BusinessService"],
-        [:business_object, "BusinessObject"],
-        [:contract, "Contract"],
-        [:representation, "Representation"],
-        [:product, "Product"],
-        [:application_component, "ApplicationComponent"],
-        [:application_collaboration, "ApplicationCollaboration"],
-        [:application_interface, "ApplicationInterface"],
-        [:application_function, "ApplicationFunction"],
-        [:application_interaction, "ApplicationInteraction"],
-        [:application_process, "ApplicationProcess"],
-        [:application_event, "ApplicationEvent"],
-        [:application_service, "ApplicationService"],
-        [:data_object, "DataObject"],
         [:node, "Node"],
         [:device, "Device"],
         [:technology_collaboration, "TechnologyCollaboration"],
@@ -45,10 +51,7 @@ module ArchiDsl
         [:technology_interaction, "TechnologyInteraction"],
         [:technology_event, "TechnologyEvent"],
         [:artifact, "Artifact"],
-        [:equipment, "Equipment"],
-        [:facility, "Facility"],
         [:distribution_network, "DistributionNetwork"],
-        [:material, "material"],
         [:stakeholder, "Stakeholder"],
         [:driver, "Driver"],
         [:assessment, "Assessment"],
@@ -80,15 +83,29 @@ module ArchiDsl
         [:technology_service, "TechnologyService"]
       ].freeze
 
+      def self.define_model_element_method(name, ele_kind)
+        class_eval(<<-RUBY_CODE)
+          def #{name}(element_name, **kwargs, &blk)
+            ele = #{ele_kind}.new(@association_registry, @element_lookup, element_name, **kwargs)
+            @children << ele
+            ele
+          end
+        RUBY_CODE
+      end
+
       def self.define_parent_element_method(name, ele_kind)
         class_eval(<<-RUBY_CODE)
-          def #{name}(element_name, element_id = "e-" + SecureRandom.uuid, &blk)
-            ele = #{ele_kind}.new(@association_registry, @element_lookup, element_name, element_id, &blk)
+          def #{name}(element_name, **kwargs, &blk)
+            ele = #{ele_kind}.new(@association_registry, @element_lookup, element_name, **kwargs, &blk)
             @element_lookup.add_element(ele)
             @children << ele
             ele
           end
         RUBY_CODE
+      end
+
+      MODEL_ELEMENT_SET.each do |pe_item|
+        define_model_element_method(pe_item[0], pe_item[1])
       end
 
       PARENTING_ELEMENT_SETS.each do |pe_item|

@@ -3,8 +3,8 @@ module ArchiDsl
     class Relationship
       attr_reader :from, :to, :id
 
-      def initialize(id, from, to, kind)
-        @id = id
+      def initialize(from, to, kind, **kwargs)
+        @id = kwargs.fetch(:id, "e-" + SecureRandom.uuid)
         @to = to
         @from = from
         @kind = kind

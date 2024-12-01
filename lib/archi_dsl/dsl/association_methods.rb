@@ -17,8 +17,8 @@ module ArchiDsl
 
       def self.define_assoc_method(name)
         class_eval(<<-RUBY_CODE)
-          def #{name}(from, to)
-            @association_registry.add_association(from, to, :#{name})
+          def #{name}(from, to, **kwargs)
+            @association_registry.add_association(from, to, :#{name}, **kwargs)
           end
         RUBY_CODE
       end
