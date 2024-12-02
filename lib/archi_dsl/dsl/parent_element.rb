@@ -3,7 +3,7 @@ module ArchiDsl
     class ParentElement
       include AssociationMethods
 
-      attr_reader :element_id, :children, :name
+      attr_reader :element_id, :children, :name, :folder_name
 
       def initialize(a_registry, e_lookup, name, **kwargs, &blk)
         @element_id = kwargs.fetch(:id, "e-" + SecureRandom.uuid)
@@ -11,14 +11,26 @@ module ArchiDsl
         @name = name
         @element_lookup = e_lookup
         @children = []
+        unless view_only?
+          if kwargs.key?(:folder)
+            @folder_name = base_folder + "/" + kwargs[:folder]
+          else
+            @folder_name = base_folder
+          end
+        end
         instance_exec(&blk) if blk
       end
 
       def self.define_model_element_method(name, ele_kind, association_kind)
         class_eval(<<-RUBY_CODE)
           def #{name}(element_name, **kwargs, &blk)
+            folder = kwargs[:folder]
             ele = #{ele_kind}.new(@association_registry, @element_lookup, element_name, **kwargs, &blk)
-            @association_registry.add_association(self, ele, :#{association_kind})
+            if folder
+              @association_registry.add_association(self, ele, :#{association_kind}, folder: folder)
+            else
+              @association_registry.add_association(self, ele, :#{association_kind})
+            end
             @children << ele
             ele
           end
@@ -28,9 +40,14 @@ module ArchiDsl
       def self.define_parent_element_method(name, ele_kind, association_kind)
         class_eval(<<-RUBY_CODE)
           def #{name}(element_name, **kwargs, &blk)
+            folder = kwargs[:folder]
             ele = #{ele_kind}.new(@association_registry, @element_lookup, element_name, **kwargs, &blk)
             @element_lookup.add_element(ele)
-            @association_registry.add_association(self, ele, :#{association_kind})
+            if folder
+              @association_registry.add_association(self, ele, :#{association_kind}, folder: folder)
+            else
+              @association_registry.add_association(self, ele, :#{association_kind})
+            end
             @children << ele
             ele
           end

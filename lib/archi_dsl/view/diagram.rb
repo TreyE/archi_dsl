@@ -1,7 +1,7 @@
 module ArchiDsl
   module View
     class Diagram
-      attr_reader :name, :element_id
+      attr_reader :name, :element_id, :folder_name
 
       def initialize(d_index, a_registry, lookup, name, &blk)
         @element_id = "d-" + SecureRandom.uuid
@@ -13,6 +13,7 @@ module ArchiDsl
         @groups = []
         @d_index = d_index
         @layout_links = []
+        @folder_name = ArchiDsl::Organizations::VIEWS_BASE
         instance_exec(&blk) if blk
       end
 
@@ -89,10 +90,10 @@ module ArchiDsl
               {
                 "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
                 "xsi:type" => "Relationship",
-                "relationshipRef" => va.id,
+                "relationshipRef" => va.element_id,
                 "source" => "d-#{@d_index}-" + va.from.element_id,
                 "target" => "d-#{@d_index}-" + va.to.element_id,
-                "identifier" => "d-#{@d_index}-" + va.id
+                "identifier" => "d-#{@d_index}-" + va.element_id
               }
             )
           end

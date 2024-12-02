@@ -126,7 +126,7 @@ module ArchiDsl
 
         @relationships.each do |rel|
           begin
-            g.add_edges(@node_map[rel.to.element_id], @node_map[rel.from.element_id], label: rel.id)
+            g.add_edges(@node_map[rel.to.element_id], @node_map[rel.from.element_id], label: rel.element_id)
           rescue
             raise [rel.to.element_id, rel.from.element_id].inspect
           end
@@ -145,7 +145,7 @@ module ArchiDsl
 
       def relationship_by_id(id)
         id = id.tr('"', '')
-        @relationships.find { |rel| rel.id == id }
+        @relationships.find { |rel| rel.element_id == id }
       end
     end
   end

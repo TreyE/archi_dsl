@@ -54,31 +54,8 @@ module ArchiDsl
               end
             end
 
-            viewable_elements = elements.reject(&:view_only?)
-
-            if viewable_elements.any?
-              grouped_views = viewable_elements.group_by(&:base_folder)
-
-              model["archimate"].organizations do |org_node|
-                grouped_views.each_pair do |k, v|
-                  org_node["archimate"].item do |i_node|
-                    i_node["archimate"].label(k)
-                    v.each do |f_ele|
-                      i_node["archimate"].item({identifierRef: f_ele.element_id})
-                    end
-                  end
-                end
-
-                if @association_registry.associations.any?
-                  org_node["archimate"].item do |a_item_node|
-                    a_item_node["archimate"].label(Organizations::RELATIONS_BASE)
-                    @association_registry.associations.each do |assoc|
-                      a_item_node["archimate"].item({identifierRef: assoc.id})
-                    end
-                  end
-                end
-              end
-            end
+            fm = Organizations::FolderManager.new(elements, @association_registry.associations, @diagrams)
+            fm.to_xml(model)
 
             if @diagrams.any?
               model["archimate"].views do |v_node|

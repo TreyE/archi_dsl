@@ -1,6 +1,7 @@
 require "nokogiri"
 
 require "securerandom"
+require_relative "archi_dsl/organizations"
 require_relative "archi_dsl/view"
 require_relative "archi_dsl/dsl"
 
