@@ -25,18 +25,6 @@ module ArchiDsl
         RUBY_CODE
       end
 
-      def self.define_real_element_method(name, ele_kind, association_kind)
-        class_eval(<<-RUBY_CODE)
-          def #{name}(element_name, **kwargs, &blk)
-            ele = RealElement.new(@association_registry, "#{ele_kind}", element_name, **kwargs, &blk)
-            @element_lookup.add_element(ele)
-            @association_registry.add_association(self, ele, :#{association_kind})
-            @children << ele
-            ele
-          end
-        RUBY_CODE
-      end
-
       def self.define_parent_element_method(name, ele_kind, association_kind)
         class_eval(<<-RUBY_CODE)
           def #{name}(element_name, **kwargs, &blk)

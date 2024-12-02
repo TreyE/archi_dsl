@@ -1,16 +1,6 @@
 module ArchiDsl
   module Dsl
     module ElementMethods
-      def self.define_real_element_method(name, ele_kind)
-        class_eval(<<-RUBY_CODE)
-          def #{name}(element_name, **kwargs, &blk)
-            ele = RealElement.new(@association_registry, "#{ele_kind}", element_name, **kwargs, &blk)
-            @element_lookup.add_element(ele)
-            @children << ele
-            ele
-          end
-        RUBY_CODE
-      end
 
       MODEL_ELEMENT_SET = [
         [:business_actor, "Business::BusinessActor"],
@@ -35,44 +25,41 @@ module ArchiDsl
         [:application_event, "Application::ApplicationEvent"],
         [:application_service, "Application::ApplicationService"],
         [:data_object, "Application::DataObject"],
+        [:deliverable, "Implementation::Deliverable"],
+        [:gap, "Implementation::Gap"],
+        [:implementation_event, "Implementation::ImplementationEvent"],
+        [:plateau, "Implementation::Plateau"],
+        [:work_package, "Implementation::WorkPackage"],
+        [:assessment, "Motivation::Assessment"],
+        [:constraint, "Motivation::Constraint"],
+        [:driver, "Motivation::Driver"],
+        [:goal, "Motivation::Goal"],
+        [:meaning, "Motivation::Meaning"],
+        [:outcome, "Motivation::Outcome"],
+        [:principle, "Motivation::Principle"],
+        [:requirement, "Motivation::Requirement"],
+        [:stakeholder, "Motivation::Stakeholder"],
+        [:value, "Motivation::Value"],
+        [:and_junction, "Other::AndJunction"],
+        [:or_junction, "Other::OrJunction"],
+        [:distribution_network, "Physical::DistributionNetwork"],
         [:equipment, "Physical::Equipment"],
         [:facility, "Physical::Facility"],
-        [:material, "Physical::Material"]
-      ].freeze
-
-      REAL_ELEMENT_SET = [
-        [:node, "Node"],
-        [:device, "Device"],
-        [:technology_collaboration, "TechnologyCollaboration"],
-        [:technology_interface, "TechnologyInterface"],
-        [:path, "Path"],
-        [:communication_network, "CommunicationNetwork"],
-        [:technology_function, "TechnologyFunction"],
-        [:technology_interaction, "TechnologyInteraction"],
-        [:technology_event, "TechnologyEvent"],
-        [:artifact, "Artifact"],
-        [:distribution_network, "DistributionNetwork"],
-        [:stakeholder, "Stakeholder"],
-        [:driver, "Driver"],
-        [:assessment, "Assessment"],
-        [:goal, "Goal"],
-        [:outcome, "Outcome"],
-        [:principle, "Principle"],
-        [:requirement, "Requirement"],
-        [:constraint, "Constraint"],
-        [:meaning, "Meaning"],
-        [:value, "Value"],
-        [:resource, "Resource"],
-        [:capability, "Capability"],
-        [:course_of_action, "CourseOfAction"],
-        [:value_stream, "ValueStream"],
-        [:work_package, "WorkPackage"],
-        [:deliverable, "Deliverable"],
-        [:implementation_event, "ImplementationEvent"],
-        [:plateau, "Plateau"],
-        [:gap, "Gap"],
-        [:and_junction, "AndJunction"],
-        [:or_junction, "OrJunction"]
+        [:material, "Physical::Material"],
+        [:capability, "Strategy::Capability"],
+        [:course_of_action, "Strategy::CourseOfAction"],
+        [:resource, "Strategy::Resource"],
+        [:value_stream, "Strategy::ValueStream"],
+        [:communication_network, "Technology::CommunicationNetwork"],
+        [:device, "Technology::Device"],
+        [:node, "Technology::Node"],
+        [:path, "Technology::Path"],
+        [:artifact, "Technology::Artifact"],
+        [:technology_collaboration, "Technology::TechnologyCollaboration"],
+        [:technology_event, "Technology::TechnologyEvent"],
+        [:technology_function, "Technology::TechnologyFunction"],
+        [:technology_interaction, "Technology::TechnologyInteraction"],
+        [:technology_interface, "Technology::TechnologyInterface"]
       ].freeze
 
       PARENTING_ELEMENT_SETS = [
@@ -110,10 +97,6 @@ module ArchiDsl
 
       PARENTING_ELEMENT_SETS.each do |pe_item|
         define_parent_element_method(pe_item[0], pe_item[1])
-      end
-
-      REAL_ELEMENT_SET.each do |re_item|
-        define_real_element_method(re_item[0], re_item[1])
       end
     end
   end
