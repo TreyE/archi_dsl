@@ -44,6 +44,11 @@ module ArchiDsl
         end
       end
 
+      def debug
+        build_graphviz_model
+        g.output(dot: String)
+      end
+
       def preview(file_path)
         build_graphviz_model
         g.output(png: file_path)
@@ -115,13 +120,16 @@ module ArchiDsl
           sg = g.add_graph("cluster_" + grp.element_id)
           sg["label"] = grp.name
           sg["labelloc"] = "b"
+          apply_group_options(sg, grp.node_options)
           @node_map[grp.element_id] = sg
           grp.add_children_to_graph(sg, @node_map)
         end
 
         # TODO: generate unique view element ids
         elements.each do |el|
-          @node_map[el.element_id] = g.add_nodes(el.element_id, id: el.element_id, label: el.name)
+          el_node = g.add_nodes(el.element_id, id: el.element_id, label: el.name)
+          el.apply_options(el_node)
+          @node_map[el.element_id] = el_node
         end
 
         @relationships.each do |rel|
@@ -135,6 +143,17 @@ module ArchiDsl
         @element_links.each do |e_link|
           from, to = e_link
           g.add_edges(@node_map[to.element_id], @node_map[from.element_id])
+        end
+      end
+
+      def apply_group_options(subgraph, opts)
+        options = opts.clone
+        node_options = options.delete(:node) || {}
+        node_options.each_pair do |k, v|
+          subgraph.node[k] = v
+        end
+        options.each_pair do |k, v|
+          subgraph[k] = v
         end
       end
 

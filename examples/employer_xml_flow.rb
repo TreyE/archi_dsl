@@ -102,13 +102,13 @@ model = ArchiDsl.model "Employer V2 XML Process" do
       node eldppl_q
     end
     group hbx_e do
-      node eddl
+      node eddl, fontsize: "26pt"
       node edlt
       node eldl
       node eldppl
     end
-    group wl_as do
-      group o_soa do
+    group wl_as, node: {margin: "0.36,0.055"} do
+      group o_soa, node: {fontsize: "26pt"} do
         node composite
       end
       node o_b2b

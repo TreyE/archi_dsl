@@ -17,14 +17,14 @@ module ArchiDsl
         instance_exec(&blk) if blk
       end
 
-      def node(element_or_id)
+      def node(element_or_id, **kwargs)
         element = element_or_id.respond_to?(:element_id) ? element_or_id : @element_lookup.lookup(element_or_id)
-        @elements << element
+        @elements << DiagramNode.new(element, **kwargs)
       end
 
-      def group(element_or_id, &blk)
+      def group(element_or_id, **kwargs, &blk)
         element = element_or_id.respond_to?(:element_id) ? element_or_id : @element_lookup.lookup(element_or_id)
-        dg_ele = DiagramGroup.new(@element_lookup, @exclusion_registry, element)
+        dg_ele = DiagramGroup.new(@element_lookup, @exclusion_registry, element, **kwargs)
         @groups << dg_ele
         dg_ele.instance_exec(&blk) if blk
       end
@@ -51,6 +51,13 @@ module ArchiDsl
         from_element = from.respond_to?(:element_id) ? from : @element_lookup.lookup(from)
         to_element = to.respond_to?(:element_id) ? to : @element_lookup.lookup(to)
         @layout_links << [from_element, to_element]
+      end
+
+      def debug
+        associations = select_associations_for_diagram
+        @filtered_element_ids = all_element_ids
+        vl = ArchiDsl::View::ViewLayout.new(@groups, @elements, associations, all_element_ids, @layout_links)
+        vl.debug
       end
 
       def preview(file_path)

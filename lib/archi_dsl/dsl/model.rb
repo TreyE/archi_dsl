@@ -27,6 +27,11 @@ module ArchiDsl
         diagram.preview(file_path)
       end
 
+      def debug_diagram(diagram_name)
+        diagram = @diagrams.detect { |d| d.name == diagram_name }
+        diagram.debug
+      end
+
       def to_xml
         elements = @children.flat_map(&:elements)
         Nokogiri::XML::Builder.new do |xml|
