@@ -1,3 +1,4 @@
+require_relative "dsl/organizations"
 require_relative "dsl/association_registry"
 require_relative "dsl/element_lookup"
 require_relative "dsl/relationship"
