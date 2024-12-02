@@ -30,9 +30,9 @@ module ArchiDsl
       def excluded_by?(exclusion_list)
         exclusion_list.any? do |exclusion|
           f, t, assoc = exclusion
-          f.element_id == from.element_id &&
-            t.element_id == to.element_id &&
-            assoc == @kind
+          (f.element_id == from.element_id || f == :_) &&
+            (t.element_id == to.element_id || t == :_)  &&
+            (assoc == @kind || assoc == :_)
         end
       end
     end

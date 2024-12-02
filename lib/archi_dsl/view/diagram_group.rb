@@ -21,13 +21,14 @@ module ArchiDsl
 
       def node(element_or_id)
         element = element_or_id.respond_to?(:element_id) ? element_or_id : @element_lookup.lookup(element_or_id)
-        @exclusion_registry << [self, element, @group_element.class.child_association_kind]
+        @exclusion_registry << [@group_element, element, :_]
         @elements << element
       end
 
       def group(element_or_id, &blk)
         element = element_or_id.respond_to?(:element_id) ? element_or_id : @element_lookup.lookup(element_or_id)
         dg_ele = DiagramGroup.new(@element_lookup, @exclusion_registry, element)
+        @exclusion_registry << [@group_element, element, :_]
         @groups << dg_ele
         dg_ele.instance_exec(&blk) if blk
       end
