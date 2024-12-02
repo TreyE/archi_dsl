@@ -63,7 +63,7 @@ module ArchiDsl
       ].freeze
 
       PARENTING_ELEMENT_SETS = [
-        [:group, "Group"],
+        [:grouping, "Grouping"],
         [:location, "Location"],
         [:system_software, "SystemSoftware"],
         [:technology_process, "TechnologyProcess"],

@@ -1,8 +1,8 @@
 module ArchiDsl
   module Dsl
-    class Group < ParentElement
-      def view_only?
-        true
+    class Grouping < ParentElement
+      def base_folder
+        Organizations::OTHER_BASE
       end
 
       def xsi_type

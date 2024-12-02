@@ -7,7 +7,7 @@ class TestArchiDsl < Minitest::Test
 
     model = ArchiDsl.model "enroll" do
       user = application_component "User"
-      pdg = group "Person Document" do
+      pdg = grouping "Person Document" do
         person = application_component "Person"
         email = application_component "Email"
       end
