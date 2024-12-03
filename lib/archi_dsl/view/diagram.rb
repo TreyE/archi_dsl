@@ -10,7 +10,6 @@ module ArchiDsl
         @element_lookup = lookup
         @name = name
         @elements = []
-        @groups = []
         @d_index = d_index
         @layout_links = []
         @folder_name = ArchiDsl::Organizations::VIEWS_BASE
@@ -25,7 +24,18 @@ module ArchiDsl
       def group(element_or_id, **kwargs, &blk)
         element = element_or_id.respond_to?(:element_id) ? element_or_id : @element_lookup.lookup(element_or_id)
         dg_ele = DiagramGroup.new(@element_lookup, @exclusion_registry, element, **kwargs)
-        @groups << dg_ele
+        @elements << dg_ele
+        dg_ele.instance_exec(&blk) if blk
+        dg_ele.element_ids.each do |e_id|
+          if dg_ele.element_id != e_id
+            @exclusion_registry << [element, @element_lookup.lookup(e_id), :_]
+          end
+        end
+      end
+
+      def layout_container(&blk)
+        dg_ele = LayoutContainer.new(@element_lookup, @exclusion_registry)
+        @elements << dg_ele
         dg_ele.instance_exec(&blk) if blk
       end
 
@@ -56,21 +66,21 @@ module ArchiDsl
       def debug
         associations = select_associations_for_diagram
         @filtered_element_ids = all_element_ids
-        vl = ArchiDsl::View::ViewLayout.new(@groups, @elements, associations, all_element_ids, @layout_links)
+        vl = ArchiDsl::View::ViewLayout.new(@elements, associations, all_element_ids, @layout_links)
         vl.debug
       end
 
       def preview(file_path)
         associations = select_associations_for_diagram
         @filtered_element_ids = all_element_ids
-        vl = ArchiDsl::View::ViewLayout.new(@groups, @elements, associations, all_element_ids, @layout_links)
+        vl = ArchiDsl::View::ViewLayout.new(@elements, associations, all_element_ids, @layout_links)
         vl.preview(file_path)
       end
 
       def to_xml(parent)
         associations = select_associations_for_diagram
         @filtered_element_ids = all_element_ids
-        vl = ArchiDsl::View::ViewLayout.new(@groups, @elements, associations, all_element_ids, @layout_links)
+        vl = ArchiDsl::View::ViewLayout.new(@elements, associations, all_element_ids, @layout_links)
         view_elements = vl.positions
         parent[:archimate].view(
           "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
@@ -110,9 +120,7 @@ module ArchiDsl
       protected
 
       def all_element_ids
-        element_ids = @elements.map(&:element_id)
-        group_element_ids = @groups.flat_map(&:element_ids).uniq
-        (element_ids + group_element_ids).uniq
+        @elements.flat_map(&:element_ids).uniq
       end
 
       def select_associations_for_diagram

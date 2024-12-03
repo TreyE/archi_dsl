@@ -14,6 +14,10 @@ module ArchiDsl
         @element.element_id
       end
 
+      def element_ids
+        [@element.element_id]
+      end
+
       def apply_options(node)
         @opts.each_pair do |k, v|
           node[k] = v

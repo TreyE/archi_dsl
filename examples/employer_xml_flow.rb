@@ -23,12 +23,12 @@ model = ArchiDsl.model "Employer V2 XML Process" do
     eldppl = technology_service "EmployerDigestPaymentProcessorListener", folder: "hbx_enterprise"
   end
   r_mq = system_software "RabbitMQ", folder: "rabbit_mq" do
-    f_ex = technology_interface "<client>.<environment>.e.fanout.events", folder: "rabbit_mq"
-    t_ex = technology_interface "<client>.<environment>.e.topic.events", folder: "rabbit_mq"
-    eddl_q = technology_interface "<client>.<environment>.q.hbx_enterprise.employer_digest_drop_listener", folder: "rabbit_mq"
-    edlt_q = technology_interface "<client>.<environment>.q.hbx_enterprise.employer_legacy_digest_transformer", folder: "rabbit_mq"
-    eldl_q = technology_interface "<client>.<environment>.q.hbx_enterprise.employer_legacy_digest_listener", folder: "rabbit_mq"
-    eldppl_q = technology_interface "<client>.<environment>.q.hbx_enterprise.employer_digest_payment_processor_listener", folder: "rabbit_mq"
+    f_ex = technology_service "<client>.<environment>.e.fanout.events", folder: "rabbit_mq"
+    t_ex = technology_service "<client>.<environment>.e.topic.events", folder: "rabbit_mq"
+    eddl_q = technology_service "<client>.<environment>.q.hbx_enterprise.employer_digest_drop_listener", folder: "rabbit_mq"
+    edlt_q = technology_service "<client>.<environment>.q.hbx_enterprise.employer_legacy_digest_transformer", folder: "rabbit_mq"
+    eldl_q = technology_service "<client>.<environment>.q.hbx_enterprise.employer_legacy_digest_listener", folder: "rabbit_mq"
+    eldppl_q = technology_service "<client>.<environment>.q.hbx_enterprise.employer_digest_payment_processor_listener", folder: "rabbit_mq"
   end
 
   all_messages = path "All Messages", folder: "rabbit_mq"
@@ -102,13 +102,13 @@ model = ArchiDsl.model "Employer V2 XML Process" do
       node eldppl_q
     end
     group hbx_e do
-      node eddl, fontsize: "26pt"
+      node eddl
       node edlt
       node eldl
       node eldppl
     end
-    group wl_as, node: {margin: "0.36,0.055"} do
-      group o_soa, node: {fontsize: "26pt"} do
+    group wl_as do
+      group o_soa do
         node composite
       end
       node o_b2b

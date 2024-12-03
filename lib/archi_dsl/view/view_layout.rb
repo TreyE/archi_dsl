@@ -18,9 +18,8 @@ module ArchiDsl
       attr_reader :relationships
       attr_reader :groups
 
-      def initialize(groups, elements, relationships, element_ids, element_links)
+      def initialize(elements, relationships, element_ids, element_links)
         @g = nil
-        @groups = groups
         @relationships = relationships
         @elements = elements
         @element_ids = element_ids
@@ -72,8 +71,13 @@ module ArchiDsl
           x = llx
           w = urx - llx
           children = parse_gv_model(gs)
-          #raise name.inspect
-          graph_nodes << GVNode.new(name.gsub(/\Acluster_/, "").gsub("_", "-"), x, y, w, h, children)
+          if name =~ /\Acluster_layoutcontainer_/
+            children.each do |c|
+              graph_nodes << c
+            end
+          else
+            graph_nodes << GVNode.new(name.gsub(/\Acluster_/, "").gsub("_", "-"), x, y, w, h, children)
+          end
         end
 
         model.each_node do |n_name, n|
@@ -116,7 +120,26 @@ module ArchiDsl
 
         @node_map = {}
 
-        @groups.each do |grp|
+        groups = elements.select do |el|
+          el.kind_of?(DiagramGroup)
+        end
+
+        containers = elements.select do |el|
+          el.kind_of?(LayoutContainer)
+        end
+
+        elems = elements.reject do |el|
+          (el.kind_of?(DiagramGroup) || el.kind_of?(LayoutContainer))
+        end
+
+        containers.each do |grp|
+          sg = g.add_graph("cluster_layoutcontainer_" + grp.element_id)
+          sg["label"] = ''
+          apply_group_options(sg, grp.node_options)
+          grp.add_children_to_graph(sg, @node_map)
+        end
+
+        groups.each do |grp|
           sg = g.add_graph("cluster_" + grp.element_id)
           sg["label"] = grp.name
           sg["labelloc"] = "b"
@@ -125,8 +148,7 @@ module ArchiDsl
           grp.add_children_to_graph(sg, @node_map)
         end
 
-        # TODO: generate unique view element ids
-        elements.each do |el|
+        elems.each do |el|
           el_node = g.add_nodes(el.element_id, id: el.element_id, label: el.name)
           el.apply_options(el_node)
           @node_map[el.element_id] = el_node
@@ -134,7 +156,7 @@ module ArchiDsl
 
         @relationships.each do |rel|
           begin
-            g.add_edges(@node_map[rel.to.element_id], @node_map[rel.from.element_id], label: rel.element_id)
+            g.add_edges(@node_map[rel.to.element_id], @node_map[rel.from.element_id])
           rescue
             raise [rel.to.element_id, rel.from.element_id].inspect
           end
