@@ -18,6 +18,7 @@ module ArchiDsl
           sg = subgraph.add_graph("cluster_layoutcontainer_" + grp.element_id)
           sg.graph["label"] = ""
           apply_group_options(sg, grp.node_options)
+          node_map[grp.element_id] = sg
           grp.add_children_to_graph(sg, node_map)
         end
 

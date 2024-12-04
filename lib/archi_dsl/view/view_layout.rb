@@ -45,7 +45,7 @@ module ArchiDsl
 
       def debug
         build_graphviz_model
-        g.output(dot: String)
+        g.output(none: String)
       end
 
       def preview(file_path)
@@ -103,7 +103,8 @@ module ArchiDsl
 
       def build_graphviz_model
         @g = GraphViz.new( :G, :type => :digraph )
-        g["compound"] = true
+        g.graph["compound"] = true
+        #g["layout"] = "fdp"
         # g.node["fixedsize"] = "true"
         # g.node["width"] = 1.0
         # g.node["height"] = 0.5
@@ -136,6 +137,7 @@ module ArchiDsl
           sg = g.add_graph("cluster_layoutcontainer_" + grp.element_id)
           sg["label"] = ''
           apply_group_options(sg, grp.node_options)
+          @node_map[grp.element_id] = sg
           grp.add_children_to_graph(sg, @node_map)
         end
 
@@ -163,8 +165,8 @@ module ArchiDsl
         end
 
         @element_links.each do |e_link|
-          from, to = e_link
-          g.add_edges(@node_map[to.element_id], @node_map[from.element_id])
+          from, to, args = e_link
+          g.add_edges(@node_map[to.element_id], @node_map[from.element_id], args)
         end
       end
 

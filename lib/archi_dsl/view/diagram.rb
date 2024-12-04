@@ -37,6 +37,7 @@ module ArchiDsl
         dg_ele = LayoutContainer.new(@element_lookup, @exclusion_registry)
         @elements << dg_ele
         dg_ele.instance_exec(&blk) if blk
+        dg_ele
       end
 
       def write_node_children(p_node, children)
@@ -57,10 +58,10 @@ module ArchiDsl
         end
       end
 
-      def layout_link(from, to)
+      def layout_link(from, to, **kwargs)
         from_element = from.respond_to?(:element_id) ? from : @element_lookup.lookup(from)
         to_element = to.respond_to?(:element_id) ? to : @element_lookup.lookup(to)
-        @layout_links << [from_element, to_element]
+        @layout_links << [from_element, to_element, kwargs]
       end
 
       def debug

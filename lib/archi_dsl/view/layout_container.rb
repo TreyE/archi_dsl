@@ -41,6 +41,7 @@ module ArchiDsl
         dg_ele = LayoutContainer.new(@element_lookup, @exclusion_registry)
         @elements << dg_ele
         dg_ele.instance_exec(&blk) if blk
+        dg_ele
       end
     end
   end

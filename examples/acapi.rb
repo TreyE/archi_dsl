@@ -21,8 +21,8 @@ model = ArchiDsl.model "ACAPI Messaging" do
 
   e_subscriber = application_component "Event Subscriber"
   r_subscriber = application_component "Request Subscriber"
-  cesbaq_interaction = technology_interaction "Create Event Subscriber Binding and Queue"
-  crqbaq_interaction = technology_interaction "Create Request Client Binding and Queue"
+  cesbaq_interaction = technology_interaction "Create\nEvent\nSubscriber\nBinding and Queue"
+  crqbaq_interaction = technology_interaction "Create\nRequest\nClient\nBinding and Queue"
 
   event_subscriber_binding = path "Event Client Binding"
   e2e_binding = path "Exchange to Exchange Binding"
@@ -54,28 +54,36 @@ model = ArchiDsl.model "ACAPI Messaging" do
       node request_publication
     end
     group r_mq do
+      node f_ex
       layout_container do
-        node f_ex
+        node t_ex
+        node d_ex
         node r_ex
       end
       node e2e_binding
-      node t_ex
-      node d_ex
       layout_container do
         node event_subscriber_binding
-        node rc_binding
+        node es_queue
       end
       layout_container do
-        node es_queue
+        node rc_binding
         node rc_queue
       end
+      #
     end
-    layout_container do
-      node cesbaq_interaction
-      node crqbaq_interaction
-    end
+
     node e_subscriber
     node r_subscriber
+    node crqbaq_interaction
+    node cesbaq_interaction
+
+    #layout_link es_queue, e_subscriber# , weight: 1.5
+    # layout_link es_queue, cesbaq_interaction# , weight: 5.0
+    #layout_link event_publication, cesbaq_interaction, weight: 2.0
+    #layout_link event_subscriber_binding, cesbaq_interaction,  weight: 2.0
+    # layout_link event_publication, cesbaq_interaction
+    # layout_link e_subscriber, d_ex
+    # layout_link r_subscriber, r_ex
   end
 end
 
