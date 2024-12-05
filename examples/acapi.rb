@@ -49,45 +49,45 @@ model = ArchiDsl.model "ACAPI Messaging" do
   serving rc_queue, crqbaq_interaction
 
   diagram "ACAPI Message Routing" do
-    layout_container do
-      node event_publication
-      node request_publication
-    end
     group r_mq do
-      node f_ex
       layout_container do
         node t_ex
         node d_ex
         node r_ex
       end
+      layout_container do
+        layout_container cluster: false, rank: "max" do
+          node crqbaq_interaction
+        end
+        layout_container do
+          node rc_binding
+          node rc_queue
+        end
+      end
+      layout_container do
+        layout_container cluster: false, rank: "max" do
+          node cesbaq_interaction
+        end
+        layout_container do
+          node event_subscriber_binding
+          node es_queue
+        end
+      end
       node e2e_binding
-      layout_container do
-        node event_subscriber_binding
-        node es_queue
-      end
-      layout_container do
-        node rc_binding
-        node rc_queue
-      end
-      #
+      node f_ex
     end
-
-    node e_subscriber
-    node r_subscriber
-    node crqbaq_interaction
-    node cesbaq_interaction
-
-    #layout_link es_queue, e_subscriber# , weight: 1.5
-    # layout_link es_queue, cesbaq_interaction# , weight: 5.0
-    #layout_link event_publication, cesbaq_interaction, weight: 2.0
-    #layout_link event_subscriber_binding, cesbaq_interaction,  weight: 2.0
-    # layout_link event_publication, cesbaq_interaction
-    # layout_link e_subscriber, d_ex
-    # layout_link r_subscriber, r_ex
+    layout_container do
+      node event_publication
+      node request_publication
+    end
+    layout_container cluster: false, rank: "same" do
+      node e_subscriber
+      node r_subscriber
+    end
   end
 end
 
-puts model.debug_diagram("ACAPI Message Routing")
+# puts model.debug_diagram("ACAPI Message Routing")
 
 model.preview_diagram("ACAPI Message Routing", "acapi.png")
 

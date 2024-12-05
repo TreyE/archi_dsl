@@ -38,8 +38,8 @@ module ArchiDsl
         end
       end
 
-      def layout_container(&blk)
-        dg_ele = LayoutContainer.new(@element_lookup, @exclusion_registry)
+      def layout_container(**kwargs, &blk)
+        dg_ele = LayoutContainer.new(@element_lookup, @exclusion_registry, **kwargs)
         @elements << dg_ele
         dg_ele.instance_exec(&blk) if blk
         dg_ele

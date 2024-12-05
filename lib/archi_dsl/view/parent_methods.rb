@@ -15,7 +15,8 @@ module ArchiDsl
         end
 
         containers.each do |grp|
-          sg = subgraph.add_graph("cluster_layoutcontainer_" + grp.element_id)
+          prefix = grp.cluster? ? "cluster_" : ""
+          sg = subgraph.add_graph("#{prefix}layoutcontainer_" + grp.element_id)
           sg.graph["label"] = ""
           apply_group_options(sg, grp.node_options)
           node_map[grp.element_id] = sg

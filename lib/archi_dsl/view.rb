@@ -3,6 +3,7 @@ require_relative "view/diagram_node"
 require_relative "view/diagram_group"
 require_relative "view/diagram"
 require_relative "view/layout_container"
+require_relative "view/dot_interpreter"
 require_relative "view/view_layout"
 
 module ArchiDsl

@@ -35,7 +35,7 @@ module ArchiDsl
           t_file.write(gv_output)
           t_file.flush
           t_file.rewind
-          model = GraphViz.parse(t_file.path)
+          model = DotInterpreter.parse(t_file.path)
           # raise model.inspect
           parse_gv_model(model)
         ensure
@@ -71,7 +71,7 @@ module ArchiDsl
           x = llx
           w = urx - llx
           children = parse_gv_model(gs)
-          if name =~ /\Acluster_layoutcontainer_/
+          if name =~ /\Acluster_layoutcontainer_/ || name =~ /\Alayoutcontainer_/
             children.each do |c|
               graph_nodes << c
             end
@@ -134,7 +134,8 @@ module ArchiDsl
         end
 
         containers.each do |grp|
-          sg = g.add_graph("cluster_layoutcontainer_" + grp.element_id)
+          prefix = grp.cluster? ? "cluster_" : ""
+          sg = g.add_graph("#{prefix}layoutcontainer_" + grp.element_id)
           sg["label"] = ''
           apply_group_options(sg, grp.node_options)
           @node_map[grp.element_id] = sg

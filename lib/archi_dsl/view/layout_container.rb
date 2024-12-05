@@ -1,19 +1,23 @@
 module ArchiDsl
   module View
     class LayoutContainer
-      attr_reader :elements, :element_id
+      attr_reader :elements, :element_id, :node_options
 
       include ParentMethods
 
-      def initialize(element_lookup, excl_registry)
+      def initialize(element_lookup, excl_registry, **kwargs)
+        opts = kwargs.dup
+        is_cluster_opt = opts.delete(:cluster)
+        @cluster = !([false, "false"].include?(is_cluster_opt))
         @element_lookup = element_lookup
         @exclusion_registry = excl_registry
         @element_id = SecureRandom.uuid
         @elements = []
+        @node_options = opts
       end
 
-      def node_options
-        {}
+      def cluster?
+        @cluster
       end
 
       def element_ids
@@ -37,12 +41,14 @@ module ArchiDsl
         end
       end
 
-      def layout_container(&blk)
-        dg_ele = LayoutContainer.new(@element_lookup, @exclusion_registry)
+      def layout_container(**kwargs, &blk)
+        dg_ele = LayoutContainer.new(@element_lookup, @exclusion_registry, **kwargs)
         @elements << dg_ele
         dg_ele.instance_exec(&blk) if blk
         dg_ele
       end
+
+      protected
     end
   end
 end
