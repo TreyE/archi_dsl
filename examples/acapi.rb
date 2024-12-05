@@ -7,46 +7,46 @@ model = ArchiDsl.model "ACAPI Messaging" do
   r_ex = nil
   rc_queue = nil
   es_queue = nil
-  event_publication = technology_interaction "Event Message Publication"
-  request_publication = technology_interaction "Request Message Publication"
+  event_publication = technology_interaction "Event Message Publication", folder: "message_publication"
+  request_publication = technology_interaction "Request Message Publication", folder: "message_publication"
 
   r_mq = system_software "RabbitMQ", folder: "rabbit_mq" do
     f_ex = technology_service "Fanout Exchange:\n<client>.<environment>.e.fanout.events", folder: "rabbit_mq"
     t_ex = technology_service "Topic Exchange:\n<client>.<environment>.e.topic.events", folder: "rabbit_mq"
     d_ex = technology_service "Direct Exchange:\n<client>.<environment>.e.direct.events", folder: "rabbit_mq"
-    r_ex = technology_service "Direct Exchange:\n<client>.<environment>.e.direct.requests"
-    rc_queue = technology_service "Request Client Queue"
-    es_queue = technology_service "Event Subscriber Queue"
+    r_ex = technology_service "Direct Exchange:\n<client>.<environment>.e.direct.requests", folder: "rabbit_mq"
+    rc_queue = technology_service "Request Client Queue", folder: "rabbit_mq"
+    es_queue = technology_service "Event Subscriber Queue", folder: "rabbit_mq"
   end
 
-  e_subscriber = application_component "Event Subscriber"
-  r_subscriber = application_component "Request Subscriber"
-  cesbaq_interaction = technology_interaction "Create\nEvent\nSubscriber\nBinding and Queue"
-  crqbaq_interaction = technology_interaction "Create\nRequest\nClient\nBinding and Queue"
+  e_subscriber = application_component "Event Subscriber", folder: "acapi_event_subscriber"
+  r_subscriber = application_component "Request Subscriber", folder: "acapi_request_subscriber"
+  cesbaq_interaction = technology_interaction "Create\nEvent\nSubscriber\nBinding and Queue", folder: "acapi_event_subscriber"
+  crqbaq_interaction = technology_interaction "Create\nRequest\nClient\nBinding and Queue", folder: "acapi_request_subscriber"
 
-  event_subscriber_binding = path "Event Client Binding"
-  e2e_binding = path "Exchange to Exchange Binding"
-  rc_binding = path "Request Client Binding"
+  event_subscriber_binding = path "Event Client Binding", folder: "rabbit_mq"
+  e2e_binding = path "Exchange to Exchange Binding", folder: "rabbit_mq"
+  rc_binding = path "Request Client Binding", folder: "rabbit_mq"
 
-  flow event_publication, f_ex
-  flow request_publication, r_ex
-  flow r_ex, rc_binding
-  flow rc_binding, rc_queue
-  flow f_ex, e2e_binding
-  flow e2e_binding, t_ex
-  flow e2e_binding, d_ex
-  flow t_ex, event_subscriber_binding
-  flow d_ex, event_subscriber_binding
-  flow event_subscriber_binding, es_queue
-  flow es_queue, e_subscriber
-  flow rc_queue, r_subscriber
+  flow event_publication, f_ex, folder: "message_publication"
+  flow request_publication, r_ex, folder: "message_publication"
+  flow r_ex, rc_binding, folder: "rabbit_mq"
+  flow rc_binding, rc_queue, folder: "rabbit_mq"
+  flow f_ex, e2e_binding, folder: "rabbit_mq"
+  flow e2e_binding, t_ex, folder: "rabbit_mq"
+  flow e2e_binding, d_ex, folder: "rabbit_mq"
+  flow t_ex, event_subscriber_binding, folder: "rabbit_mq"
+  flow d_ex, event_subscriber_binding, folder: "rabbit_mq"
+  flow event_subscriber_binding, es_queue, folder: "rabbit_mq"
+  flow es_queue, e_subscriber, folder: "acapi_event_subscriber"
+  flow rc_queue, r_subscriber, folder: "acapi_request_subscriber"
 
-  triggering e_subscriber, cesbaq_interaction
-  triggering r_subscriber, crqbaq_interaction
-  serving event_subscriber_binding, cesbaq_interaction
-  serving es_queue, cesbaq_interaction
-  serving rc_binding, crqbaq_interaction
-  serving rc_queue, crqbaq_interaction
+  triggering e_subscriber, cesbaq_interaction, folder: "acapi_event_subscriber"
+  triggering r_subscriber, crqbaq_interaction, folder: "acapi_request_subscriber"
+  serving event_subscriber_binding, cesbaq_interaction, folder: "acapi_event_subscriber"
+  serving es_queue, cesbaq_interaction, folder: "acapi_event_subscriber"
+  serving rc_binding, crqbaq_interaction, folder: "acapi_request_subscriber"
+  serving rc_queue, crqbaq_interaction, folder: "acapi_request_subscriber"
 
   diagram "ACAPI Message Routing" do
     group r_mq do
