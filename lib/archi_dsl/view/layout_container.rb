@@ -29,6 +29,12 @@ module ArchiDsl
         @elements << DiagramNode.new(element, **kwargs)
       end
 
+      def comment(comment_text, **kwargs)
+        c = Comment.new(comment_text, **kwargs)
+        @elements << c
+        c
+      end
+
       def group(element_or_id, **kwargs, &blk)
         element = element_or_id.respond_to?(:element_id) ? element_or_id : @element_lookup.lookup(element_or_id)
         dg_ele = DiagramGroup.new(@element_lookup, @exclusion_registry, element, **kwargs)
@@ -47,8 +53,6 @@ module ArchiDsl
         dg_ele.instance_exec(&blk) if blk
         dg_ele
       end
-
-      protected
     end
   end
 end

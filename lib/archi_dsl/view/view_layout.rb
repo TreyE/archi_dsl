@@ -2,7 +2,7 @@ require "graphviz"
 
 module ArchiDsl
   module View
-    GVNode = Struct.new(:element, :x, :y, :w, :h, :children)
+    GVNode = Struct.new(:element, :x, :y, :w, :h, :children, :label)
     GVEdge = Struct.new(:relationship, :source, :target, :bendpoints)
 
     # Get down to a set of relationships that will be rendered. This
@@ -18,12 +18,13 @@ module ArchiDsl
       attr_reader :relationships
       attr_reader :groups
 
-      def initialize(elements, relationships, element_ids, element_links)
+      def initialize(elements, relationships, element_ids, element_links, comment_links)
         @g = nil
         @relationships = relationships
         @elements = elements
         @element_ids = element_ids
         @element_links = element_links
+        @comment_links = comment_links
       end
 
       def positions
@@ -87,7 +88,8 @@ module ArchiDsl
           w = n[:width].to_ruby
           h = n[:height].to_ruby
           x, y = n[:pos].point
-          normal_nodes << GVNode.new(n.id, x - (w * SCALE_FACTOR/2), @height - y - (h * SCALE_FACTOR/2), w * SCALE_FACTOR, h * SCALE_FACTOR, [])
+          lbl = n["label"].nil? ? nil : eval(n["label"].to_s)
+          normal_nodes << GVNode.new(n.id, x - (w * SCALE_FACTOR/2), @height - y - (h * SCALE_FACTOR/2), w * SCALE_FACTOR, h * SCALE_FACTOR, [], lbl)
         end
 
         graph_nodes + normal_nodes
@@ -167,6 +169,11 @@ module ArchiDsl
 
         @element_links.each do |e_link|
           from, to, args = e_link
+          g.add_edges(@node_map[to.element_id], @node_map[from.element_id], args)
+        end
+
+        @comment_links.each do |c_link|
+          from, to, args = c_link
           g.add_edges(@node_map[to.element_id], @node_map[from.element_id], args)
         end
       end

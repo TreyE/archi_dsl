@@ -38,6 +38,12 @@ module ArchiDsl
         end
       end
 
+      def comment(comment_text, **kwargs)
+        c = Comment.new(comment_text, **kwargs)
+        @elements << c
+        c
+      end
+
       def layout_container(**kwargs, &blk)
         dg_ele = LayoutContainer.new(@element_lookup, @exclusion_registry, **kwargs)
         @elements << dg_ele

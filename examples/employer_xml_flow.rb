@@ -81,6 +81,20 @@ model = ArchiDsl.model "Employer V2 XML Process" do
   flow edlt, peldx, folder: "service interactions"
   flow peldx, f_ex, folder: "service interactions"
 
+  evdx = application_process "Generate Employer\nV2 Digest XML", folder: "GlueDB"
+  dbee = application_process "Delete Batched\nEmployer Events\nfrom Database", folder: "GlueDB"
+  ccsd = application_process "Batch Events\ninto Carrier-Specific Digests", folder: "GlueDB"
+  nte = application_process "Produce Enrollment\nTransmission Notification\nEvents", folder: "GlueDB"
+  eiet_ok = application_event "employer.binder_enrollments_transmission_authorized", folder: "ACAPI Events"
+  ert_ok = application_event "employer.benefit_coverage_renewal_application_eligible", folder: "ACAPI Events"
+  gdb_eddl = application_component "EmployerDigestDropListener", folder: "GlueDB"
+  composition evdx, dbee
+  composition evdx, ccsd
+  composition evdx, nte
+  realization gdb_eddl, evdx
+  triggering nte, eiet_ok
+  triggering nte, ert_ok
+
   diagram "Employer XML V2 Flow" do
     node gdb
     node pevdx
@@ -115,9 +129,32 @@ model = ArchiDsl.model "Employer V2 XML Process" do
       node b2bm
     end
   end
+
+  diagram "Employer Digest Generation Flow" do
+    node gdb_eddl
+    node evdx
+    layout_container do
+      node dbee
+      node ccsd
+      node nte
+    end
+    comm = nil
+    
+    layout_container do
+      node eiet_ok
+      node ert_ok
+    end
+
+    layout_container cluster: false, rank: "min" do
+      comm = comment "These Events Request\nTransmission of Enrollments\nfrom Enroll to GlueDB"
+    end
+
+    comment_link comm, eiet_ok
+    comment_link comm, ert_ok
+  end
 end
 
-model.preview_diagram("Employer XML V2 Flow", "employer_xml_flow.png")
+model.preview_diagram("Employer Digest Generation Flow", "employer_xml_flow.png")
 
 File.open("employer_xml_flow.xml", "wb") do |f|
   f.puts model.to_xml

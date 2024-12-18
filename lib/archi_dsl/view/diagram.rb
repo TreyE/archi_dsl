@@ -13,6 +13,7 @@ module ArchiDsl
         @d_index = d_index
         @layout_links = []
         @folder_name = ArchiDsl::Organizations::VIEWS_BASE
+        @comment_links = []
         instance_exec(&blk) if blk
       end
 
@@ -31,6 +32,12 @@ module ArchiDsl
             @exclusion_registry << [element, @element_lookup.lookup(e_id), :_]
           end
         end
+      end
+
+      def comment(comment_text, **kwargs)
+        c = Comment.new(comment_text, **kwargs)
+        @elements << c
+        c
       end
 
       def layout_container(**kwargs, &blk)
@@ -64,6 +71,12 @@ module ArchiDsl
         @layout_links << [from_element, to_element, kwargs]
       end
 
+      def comment_link(from, to, **kwargs)
+        from_element = from.respond_to?(:element_id) ? from : @element_lookup.lookup(from)
+        to_element = to.respond_to?(:element_id) ? to : @element_lookup.lookup(to)
+        @comment_links << [from_element, to_element, kwargs]
+      end
+
       def debug
         associations = select_associations_for_diagram
         @filtered_element_ids = all_element_ids
@@ -74,14 +87,14 @@ module ArchiDsl
       def preview(file_path)
         associations = select_associations_for_diagram
         @filtered_element_ids = all_element_ids
-        vl = ArchiDsl::View::ViewLayout.new(@elements, associations, all_element_ids, @layout_links)
+        vl = ArchiDsl::View::ViewLayout.new(@elements, associations, all_element_ids, @layout_links, @comment_links)
         vl.preview(file_path)
       end
 
       def to_xml(parent)
         associations = select_associations_for_diagram
         @filtered_element_ids = all_element_ids
-        vl = ArchiDsl::View::ViewLayout.new(@elements, associations, all_element_ids, @layout_links)
+        vl = ArchiDsl::View::ViewLayout.new(@elements, associations, all_element_ids, @layout_links, @comment_links)
         view_elements = vl.positions
         parent[:archimate].view(
           "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
@@ -90,17 +103,31 @@ module ArchiDsl
           d_node[:archimate].name(@name)
           view_elements.each do |ele|
             next unless @filtered_element_ids.include?(ele.element)
-            d_node[:archimate].node(
-              "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
-              "xsi:type" => "Element",
-              "elementRef" => ele.element,
-              "identifier" => "d-#{@d_index}-" + ele.element,
-              "x" => ele.x.round,
-              "y" => ele.y.round,
-              "w" => ele.w.round,
-              "h" => ele.h.round
-            ) do |p_node|
-              write_node_children(p_node, ele.children)
+            if ele.element.start_with?("v-comment-")
+              d_node[:archimate].node(
+                "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
+                "xsi:type" => "Label",
+                "identifier" => ele.element,
+                "x" => ele.x.round,
+                "y" => ele.y.round,
+                "w" => ele.w.round,
+                "h" => ele.h.round
+              ) do |c_node|
+                c_node[:archimate].label(ele.label)
+              end
+            else
+              d_node[:archimate].node(
+                "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
+                "xsi:type" => "Element",
+                "elementRef" => ele.element,
+                "identifier" => "d-#{@d_index}-" + ele.element,
+                "x" => ele.x.round,
+                "y" => ele.y.round,
+                "w" => ele.w.round,
+                "h" => ele.h.round
+              ) do |p_node|
+                write_node_children(p_node, ele.children)
+              end
             end
           end
           associations.each do |va|
@@ -112,6 +139,20 @@ module ArchiDsl
                 "source" => "d-#{@d_index}-" + va.from.element_id,
                 "target" => "d-#{@d_index}-" + va.to.element_id,
                 "identifier" => "d-#{@d_index}-" + va.element_id
+              }
+            )
+          end
+          @comment_links.each do |c_link|
+            from, to, *rest = c_link
+            source_id = from.element_id.start_with?("v-comment-") ? from.element_id : "d-#{@d_index}-" + from.element_id
+            target_id = to.element_id.start_with?("v-comment-") ? to.element_id : "d-#{@d_index}-" + to.element_id
+            d_node[:archimate].connection(
+              {
+                "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance",
+                "xsi:type" => "Line",
+                "source" => source_id,
+                "target" => target_id,
+                "identifier" => "c-line-" + SecureRandom.uuid
               }
             )
           end
