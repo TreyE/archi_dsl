@@ -81,19 +81,30 @@ model = ArchiDsl.model "Employer V2 XML Process" do
   flow edlt, peldx, folder: "service interactions"
   flow peldx, f_ex, folder: "service interactions"
 
-  evdx = application_process "Generate Employer\nV2 Digest XML", folder: "GlueDB"
-  dbee = application_process "Delete Batched\nEmployer Events\nfrom Database", folder: "GlueDB"
+  evdx = application_process "Cut Employer Event Batch", folder: "GlueDB"
+  er = application_event "Receive Event:\n'trading_partner.employer_digest.requested'", folder: "GlueDB"
+  spee = application_process "Select Pending Employer Events From Database", folder: "GlueDB"
   ccsd = application_process "Batch Events\ninto Carrier-Specific Digests", folder: "GlueDB"
+  dbee = application_process "Delete Batched\nEmployer Events\nfrom Database", folder: "GlueDB"
   nte = application_process "Produce Enrollment\nTransmission Notification\nEvents", folder: "GlueDB"
-  eiet_ok = application_event "employer.binder_enrollments_transmission_authorized", folder: "ACAPI Events"
-  ert_ok = application_event "employer.benefit_coverage_renewal_application_eligible", folder: "ACAPI Events"
-  gdb_eddl = application_component "EmployerDigestDropListener", folder: "GlueDB"
-  composition evdx, dbee
-  composition evdx, ccsd
-  composition evdx, nte
-  realization gdb_eddl, evdx
-  triggering nte, eiet_ok
-  triggering nte, ert_ok
+  eiet_ok = application_event "Publish Event:\n'employer.binder_enrollments_transmission_authorized'", folder: "ACAPI Events"
+  ert_ok = application_event "Publish Event:\n'employer.benefit_coverage_renewal_application_eligible'", folder: "ACAPI Events"
+  employer_v2_event = application_event "Publish Event:\n'trading_partner.employer_digest.published'", folder: "ACAPI Events"
+  special_events_decision = or_junction "Did we batch a 'special' event?", folder: "GlueDB"
+  ev2xml = data_object "V2 Employer XML", folder: "XML"
+  composition evdx, dbee, folder: "GlueDB"
+  composition evdx, ccsd, folder: "GlueDB"
+  composition evdx, nte, folder: "GlueDB"
+  triggering nte, eiet_ok, folder: "ACAPI Events"
+  triggering nte, ert_ok, folder: "ACAPI Events"
+  flow spee, ccsd, folder: "GlueDB"
+  flow ccsd, special_events_decision, label: "Did we batch a 'special' event?", folder: "GlueDB"
+  flow special_events_decision, nte, label: "Yes", folder: "GlueDB"
+  flow special_events_decision, dbee, label: "No", folder: "GlueDB"
+  flow nte, dbee, folder: "GlueDB"
+  triggering er, spee, folder: "GlueDB"
+  triggering ccsd, employer_v2_event, folder: "GlueDB"
+  access employer_v2_event, ev2xml, accessType: "Write", label: "event format", folder: "XML"
 
   diagram "Employer XML V2 Flow" do
     node gdb
@@ -131,26 +142,32 @@ model = ArchiDsl.model "Employer V2 XML Process" do
   end
 
   diagram "Employer Digest Generation Flow" do
-    node gdb_eddl
-    node evdx
-    layout_container do
-      node dbee
-      node ccsd
-      node nte
-    end
+    node employer_v2_event
     comm = nil
-    
     layout_container do
-      node eiet_ok
-      node ert_ok
+    group evdx do
+      node er
+      node spee
+      node ccsd
+      layout_container do
+        layout_container cluster: false, rank: "max" do
+          node special_events_decision
+          node dbee
+        end
+        node nte
+      end
     end
-
-    layout_container cluster: false, rank: "min" do
-      comm = comment "These Events Request\nTransmission of Enrollments\nfrom Enroll to GlueDB"
+      layout_container do
+        node eiet_ok
+        node ert_ok
+      end
+      layout_container cluster: false, rank: "min" do
+        comm = comment "These Events Request\nTransmission of Enrollments\nfrom Enroll to GlueDB"
+      end
     end
-
     comment_link comm, eiet_ok
     comment_link comm, ert_ok
+    node ev2xml
   end
 end
 

@@ -12,5 +12,6 @@ A Ruby DSL for generating Archimate Diagrams.  Intended to target Archi.
   * ~~Phantom Groups~~
   * Phantom Nodes
 * ~~Non-semantic diagram-only comments~~
+* ~~'Access' relationship types~~
 * Non-semantic diagram-only groups
 * Diagram Types

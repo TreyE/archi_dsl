@@ -11,8 +11,15 @@ module ArchiDsl
         @element_id = group_element.element_id
         @exclusion_registry = excl_registry
         @name = group_element.name
-        @node_options = kwargs
         @elements = []
+        opts = kwargs.dup
+        is_cluster_opt = opts.delete(:cluster)
+        @cluster = !([false, "false"].include?(is_cluster_opt))
+        @node_options = opts
+      end
+
+      def cluster?
+        @cluster
       end
 
       def element_ids

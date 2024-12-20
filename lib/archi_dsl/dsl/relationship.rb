@@ -1,7 +1,7 @@
 module ArchiDsl
   module Dsl
     class Relationship
-      attr_reader :from, :to, :element_id, :folder_name
+      attr_reader :from, :to, :element_id, :folder_name, :label
 
       def initialize(from, to, kind, **kwargs)
         @element_id = kwargs.fetch(:id, "e-" + SecureRandom.uuid)
@@ -13,6 +13,8 @@ module ArchiDsl
         else
           @folder_name = Organizations::RELATIONS_BASE
         end
+        @label = kwargs[:label] if kwargs.key?(:label)
+        @access_type = kwargs[:accessType] if kwargs.key?(:accessType)
       end
 
       def evaluate_kind
@@ -20,7 +22,20 @@ module ArchiDsl
       end
 
       def to_xml(parent)
-        parent["archimate"].relationship("identifier" => @element_id, "source" => @from.element_id, "target" => @to.element_id, "xsi:type" => evaluate_kind)
+        base_attributes = {
+          "identifier" => @element_id,
+          "source" => @from.element_id,
+          "target" => @to.element_id,
+          "xsi:type" => evaluate_kind
+        }
+        base_attributes["accessType"] = @access_type if @access_type
+        if @label
+          parent["archimate"].relationship(base_attributes) do |a_node|
+            a_node[:archimate].name(@label)
+          end
+        else
+          parent["archimate"].relationship(base_attributes)
+        end
       end
 
       def matches_both_element_ids?(element_ids)

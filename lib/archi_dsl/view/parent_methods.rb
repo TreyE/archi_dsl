@@ -33,7 +33,22 @@ module ArchiDsl
         end
 
         elems.each do |el|
-          el_node = subgraph.add_nodes(el.element_id, id: el.element_id, label: el.name)
+          node_props = {}
+          if el.fixed_size?
+            node_props = {
+              id: el.element_id,
+              fixedsize: "true",
+              label: el.name,
+              "height" => 15.0 / 72.0,
+              "width" => 15.0 / 72.0
+            }
+          else
+            node_props = {
+              id: el.element_id,
+              label: el.name
+            }
+          end
+          el_node = subgraph.add_nodes(el.element_id, **node_props)
           el.apply_options(el_node)
           node_map[el.element_id] = el_node
         end

@@ -17,6 +17,7 @@ require_relative "dsl/motivation"
 require_relative "dsl/strategy"
 require_relative "dsl/physical"
 require_relative "dsl/technology"
+require_relative "dsl/other"
 require_relative "dsl/model"
 
 module ArchiDsl

@@ -10,7 +10,7 @@ module ArchiDsl
       end
 
       def self.child_association_kind
-        :assignment
+        :composition
       end
 
       ArchiDsl::Dsl::ElementMethods::MODEL_ELEMENT_SET.each do |re_item|

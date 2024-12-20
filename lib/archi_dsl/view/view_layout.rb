@@ -145,7 +145,8 @@ module ArchiDsl
         end
 
         groups.each do |grp|
-          sg = g.add_graph("cluster_" + grp.element_id)
+          prefix = grp.cluster? ? "cluster_" : ""
+          sg = g.add_graph(prefix + grp.element_id)
           sg["label"] = grp.name
           sg["labelloc"] = "b"
           apply_group_options(sg, grp.node_options)
@@ -154,14 +155,33 @@ module ArchiDsl
         end
 
         elems.each do |el|
-          el_node = g.add_nodes(el.element_id, id: el.element_id, label: el.name)
+          node_props = { }
+          if el.fixed_size?
+            node_props = {
+              id: el.element_id,
+              fixedsize: "true",
+              label: el.name,
+              "height" => 15.0 / SCALE_FACTOR,
+              "width" => 15.0 / SCALE_FACTOR
+            }
+          else
+            node_props = {
+              id: el.element_id,
+              label: el.name
+            }
+          end
+          el_node = g.add_nodes(el.element_id, **node_props)
           el.apply_options(el_node)
           @node_map[el.element_id] = el_node
         end
 
         @relationships.each do |rel|
           begin
-            g.add_edges(@node_map[rel.to.element_id], @node_map[rel.from.element_id])
+            if rel.label
+              g.add_edges(@node_map[rel.to.element_id], @node_map[rel.from.element_id], label: rel.label)
+            else
+              g.add_edges(@node_map[rel.to.element_id], @node_map[rel.from.element_id])
+            end
           rescue
             raise [rel.to.element_id, rel.from.element_id].inspect
           end

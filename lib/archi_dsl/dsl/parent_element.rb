@@ -62,6 +62,10 @@ module ArchiDsl
         false
       end
 
+      def fixed_size?
+        false
+      end
+
       def to_xml(parent)
         element_attributes = {
           "xsi:type" => xsi_type

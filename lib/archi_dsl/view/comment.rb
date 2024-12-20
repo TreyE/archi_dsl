@@ -17,6 +17,10 @@ module ArchiDsl
         [@element_id]
       end
 
+      def fixed_size?
+        false
+      end
+
       def apply_options(node)
         @opts.each_pair do |k, v|
           node[k] = v

@@ -80,7 +80,7 @@ module ArchiDsl
       def debug
         associations = select_associations_for_diagram
         @filtered_element_ids = all_element_ids
-        vl = ArchiDsl::View::ViewLayout.new(@elements, associations, all_element_ids, @layout_links)
+        vl = ArchiDsl::View::ViewLayout.new(@elements, associations, all_element_ids, @layout_links, @comment_links)
         vl.debug
       end
 

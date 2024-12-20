@@ -6,6 +6,14 @@ module ArchiDsl
           Organizations::OTHER_BASE
         end
 
+        def name
+          ""
+        end
+
+        def fixed_size?
+          true
+        end
+
         def xsi_type
           "OrJunction"
         end

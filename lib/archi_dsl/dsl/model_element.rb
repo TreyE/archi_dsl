@@ -41,6 +41,10 @@ module ArchiDsl
       def view_only?
         false
       end
+
+      def fixed_size?
+        false
+      end
     end
   end
 end
