@@ -15,8 +15,8 @@ module ArchiDsl
         instance_exec(&blk) if blk
       end
 
-      def diagram(name, &blk)
-        dia = ArchiDsl::View::Diagram.new(@d_index, @association_registry, @element_lookup, name, &blk)
+      def diagram(name, **kwargs, &blk)
+        dia = ArchiDsl::View::Diagram.new(@d_index, @association_registry, @element_lookup, name, **kwargs, &blk)
         @diagrams << dia
         @d_index = @d_index + 1
         dia

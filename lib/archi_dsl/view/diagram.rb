@@ -3,7 +3,7 @@ module ArchiDsl
     class Diagram
       attr_reader :name, :element_id, :folder_name
 
-      def initialize(d_index, a_registry, lookup, name, &blk)
+      def initialize(d_index, a_registry, lookup, name, **kwargs, &blk)
         @element_id = "d-" + SecureRandom.uuid
         @association_registry = a_registry
         @exclusion_registry = []
@@ -12,8 +12,13 @@ module ArchiDsl
         @elements = []
         @d_index = d_index
         @layout_links = []
-        @folder_name = ArchiDsl::Organizations::VIEWS_BASE
         @comment_links = []
+        @opts = kwargs
+        if kwargs.key?(:folder)
+          @folder_name = ArchiDsl::Organizations::VIEWS_BASE + "/" + kwargs[:folder]
+        else
+          @folder_name = ArchiDsl::Organizations::VIEWS_BASE
+        end
         instance_exec(&blk) if blk
       end
 

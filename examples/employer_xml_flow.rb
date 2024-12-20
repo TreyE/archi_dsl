@@ -82,7 +82,7 @@ model = ArchiDsl.model "Employer V2 XML Process" do
   flow peldx, f_ex, folder: "service interactions"
 
   evdx = application_process "Cut Employer Event Batch", folder: "GlueDB"
-  er = application_event "Receive Event:\n'trading_partner.employer_digest.requested'", folder: "GlueDB"
+  er = application_event "Receive Event:\n'trading_partner.employer_digest.requested'", folder: "ACAPI Events"
   spee = application_process "Select Pending Employer Events From Database", folder: "GlueDB"
   ccsd = application_process "Batch Events\ninto Carrier-Specific Digests", folder: "GlueDB"
   dbee = application_process "Delete Batched\nEmployer Events\nfrom Database", folder: "GlueDB"
@@ -91,7 +91,6 @@ model = ArchiDsl.model "Employer V2 XML Process" do
   ert_ok = application_event "Publish Event:\n'employer.benefit_coverage_renewal_application_eligible'", folder: "ACAPI Events"
   employer_v2_event = application_event "Publish Event:\n'trading_partner.employer_digest.published'", folder: "ACAPI Events"
   special_events_decision = or_junction "Did we batch a 'special' event?", folder: "GlueDB"
-  ev2xml = data_object "V2 Employer XML", folder: "XML"
   composition evdx, dbee, folder: "GlueDB"
   composition evdx, ccsd, folder: "GlueDB"
   composition evdx, nte, folder: "GlueDB"
@@ -102,9 +101,11 @@ model = ArchiDsl.model "Employer V2 XML Process" do
   flow special_events_decision, nte, label: "Yes", folder: "GlueDB"
   flow special_events_decision, dbee, label: "No", folder: "GlueDB"
   flow nte, dbee, folder: "GlueDB"
-  triggering er, spee, folder: "GlueDB"
   triggering ccsd, employer_v2_event, folder: "GlueDB"
-  access employer_v2_event, ev2xml, accessType: "Write", label: "event format", folder: "XML"
+
+  gdb_eddl = application_component "Listeners::EmployerDigestDropListener"
+  serving gdb_eddl, evdx, folder: "GlueDB"
+  triggering er, gdb_eddl, folder: "GlueDB"
 
   diagram "Employer XML V2 Flow" do
     node gdb
@@ -141,12 +142,12 @@ model = ArchiDsl.model "Employer V2 XML Process" do
     end
   end
 
-  diagram "Employer Digest Generation Flow" do
+  diagram "Employer Digest Generation Flow", folder: "GlueDB" do
+    node er
+    node gdb_eddl
+    comm_1 = nil
     node employer_v2_event
-    comm = nil
-    layout_container do
     group evdx do
-      node er
       node spee
       node ccsd
       layout_container do
@@ -157,19 +158,24 @@ model = ArchiDsl.model "Employer V2 XML Process" do
         node nte
       end
     end
-      layout_container do
-        node eiet_ok
-        node ert_ok
-      end
-      layout_container cluster: false, rank: "min" do
-        comm = comment "These Events Request\nTransmission of Enrollments\nfrom Enroll to GlueDB"
-      end
+    layout_container do
+      node eiet_ok
+      node ert_ok
     end
-    comment_link comm, eiet_ok
-    comment_link comm, ert_ok
-    node ev2xml
+    layout_container cluster: false, rank: "min" do
+      comm_1 = comment "These events request\ntransmission of enrollments\nfrom Enroll to GlueDB"
+    end
+    comm_2 = comment "At this point the event contains\na V2 Employer XML Payload.\n\nThe next stop for this event is hbx_enterprise."
+
+    comment_link comm_2, employer_v2_event
+    comment_link comm_1, eiet_ok
+    comment_link comm_1, ert_ok
+
+    layout_link gdb_eddl, spee
   end
 end
+
+# puts model.debug_diagram("Employer Digest Generation Flow")
 
 model.preview_diagram("Employer Digest Generation Flow", "employer_xml_flow.png")
 

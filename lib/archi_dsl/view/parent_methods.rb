@@ -1,9 +1,13 @@
 module ArchiDsl
   module View
     module ParentMethods
-      def add_children_to_graph(subgraph, node_map)
+      def add_children_to_graph(subgraph, node_map, group_list)
         groups = @elements.select do |el|
           el.kind_of?(DiagramGroup)
+        end
+
+        groups.each do |g|
+          group_list << g.element_id
         end
 
         containers = @elements.select do |el|
@@ -20,7 +24,7 @@ module ArchiDsl
           sg.graph["label"] = ""
           apply_group_options(sg, grp.node_options)
           node_map[grp.element_id] = sg
-          grp.add_children_to_graph(sg, node_map)
+          grp.add_children_to_graph(sg, node_map, group_list)
         end
 
         groups.each do |grp|
@@ -29,7 +33,7 @@ module ArchiDsl
           sg["labelloc"] = "b"
           apply_group_options(sg, grp.node_options)
           node_map[grp.element_id] = sg
-          grp.add_children_to_graph(sg, node_map)
+          grp.add_children_to_graph(sg, node_map, group_list)
         end
 
         elems.each do |el|

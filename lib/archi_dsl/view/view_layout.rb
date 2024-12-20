@@ -127,6 +127,8 @@ module ArchiDsl
           el.kind_of?(DiagramGroup)
         end
 
+        @group_list = groups.map(&:element_id)
+
         containers = elements.select do |el|
           el.kind_of?(LayoutContainer)
         end
@@ -141,7 +143,7 @@ module ArchiDsl
           sg["label"] = ''
           apply_group_options(sg, grp.node_options)
           @node_map[grp.element_id] = sg
-          grp.add_children_to_graph(sg, @node_map)
+          grp.add_children_to_graph(sg, @node_map, @group_list)
         end
 
         groups.each do |grp|
@@ -151,7 +153,7 @@ module ArchiDsl
           sg["labelloc"] = "b"
           apply_group_options(sg, grp.node_options)
           @node_map[grp.element_id] = sg
-          grp.add_children_to_graph(sg, @node_map)
+          grp.add_children_to_graph(sg, @node_map, @group_list)
         end
 
         elems.each do |el|
@@ -175,12 +177,17 @@ module ArchiDsl
           @node_map[el.element_id] = el_node
         end
 
+        dg_ids = @group_list.uniq
+
         @relationships.each do |rel|
           begin
+            src_node = @node_map[rel.to.element_id]
+            target_node = @node_map[rel.from.element_id]
+            next if dg_ids.include?(rel.to.element_id) || dg_ids.include?(rel.from.element_id)
             if rel.label
-              g.add_edges(@node_map[rel.to.element_id], @node_map[rel.from.element_id], label: rel.label)
+              g.add_edges(src_node, target_node, label: rel.label)
             else
-              g.add_edges(@node_map[rel.to.element_id], @node_map[rel.from.element_id])
+              g.add_edges(src_node, target_node)
             end
           rescue
             raise [rel.to.element_id, rel.from.element_id].inspect
