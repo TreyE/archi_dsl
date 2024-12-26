@@ -1,6 +1,6 @@
 require "archi_dsl"
 
-model = ArchiDsl.model "Employer V2 XML Process" do
+model = ArchiDsl.model "Employer XML and Enrollment Implementation Process" do
 
   # HBX Enterprise
   hbx_e = application_component "hbx_enterprise", folder: "hbx_enterprise"
@@ -93,6 +93,7 @@ model = ArchiDsl.model "Employer V2 XML Process" do
   composition evdx, dbee, folder: "GlueDB"
   composition evdx, ccsd, folder: "GlueDB"
   composition evdx, nte, folder: "GlueDB"
+  composition evdx, spee, folder: "GlueDB"
   triggering nte, eiet_ok, folder: "ACAPI Events"
   triggering nte, ert_ok, folder: "ACAPI Events"
   flow spee, ccsd, folder: "GlueDB"
@@ -137,11 +138,73 @@ model = ArchiDsl.model "Employer V2 XML Process" do
 
     layout_link gdb_eddl, spee
   end
+
+  # Employer Event Storage and Batch Reduction - GlueDB/Enroll
+
+  pree = application_process "Process and Reduce Employer Events", folder: "GlueDB"
+  eerl = application_component "EmployerEventReducerListener", folder: "GlueDB"
+  ete = application_event "Receive Event:\n'employer.#'", folder: "ACAPI Events"
+  cpy = application_process "Persist Plan Year Records for Employer", folder: "GlueDB"
+  seid = application_process "Store Employer Events in Database\nand Reduce Duplicates", folder: "GlueDB"
+  rexe = application_process "Request Employer XML\nfrom Enroll", folder: "GlueDB"
+  pewex = application_process "Process Event With\nEmployer XML", folder: "GlueDB"
+  pr_re = application_event "Publish Request:\n'resource.employer'", folder: "ACAPI Events"
+  rr_re = application_event "Receive Request:\n'resource.employer'", folder: "ACAPI Events"
+  erl = application_component "Listeners::EmployerResourceListener", folder: "Enroll"
+  rexr = application_event "Receive Employer XML Response", folder: "ACAPI Events"
+  wfb = application_process "Wait For Batch Cut\nOr Further Events", folder: "GlueDB"
+
+  composition pree, seid, folder: "GlueDB"
+  composition pree, cpy, folder: "GlueDB"
+  composition pree, pewex, folder: "GlueDB"
+  composition pree, wfb, folder: "GlueDB"
+  composition pree, rexe, folder: "GlueDB"
+
+  triggering ete, eerl, folder: "ACAPI Events"
+  triggering eerl, pree, folder: "GlueDB"
+  triggering rexe, pr_re, folder: "ACAPI Events"
+  triggering pr_re, rr_re, folder: "ACAPI Events"
+  triggering rr_re, erl, folder: "ACAPI Events"
+  triggering erl, rexr, folder: "ACAPI Events"
+  triggering rexr, pewex, folder: "ACAPI Events"
+
+  flow pewex, seid, folder: "GlueDB"
+  flow seid, cpy, folder: "GlueDB"
+  flow cpy, wfb, folder: "GlueDB"
+
+  diagram "Employer Event Batch Storage and Reduction - GlueDB/Enroll", folder: "GlueDB" do
+    layout_container do
+      node eerl
+      node ete
+    end
+    layout_container do
+      group pree do
+        layout_container cluster: false, rank: "max" do
+          node rexe
+        end
+        layout_container do
+          node pewex
+          node seid
+          node cpy
+          node wfb
+        end
+      end
+      layout_container do
+        node pr_re
+        node rr_re
+        node erl
+        node rexr
+      end
+    end
+    layout_link rr_re, pewex
+    layout_link eerl, rexe
+    layout_link rexe, pewex
+  end
 end
 
 # puts model.debug_diagram("Employer Digest Generation Flow")
 
-model.preview_diagram("Employer Digest Generation Flow - Hbx Enterprise", "employer_xml_flow.png")
+model.preview_diagram("Employer Event Batch Storage and Reduction - GlueDB/Enroll", "employer_xml_flow.png")
 
 File.open("employer_xml_flow.xml", "wb") do |f|
   f.puts model.to_xml
